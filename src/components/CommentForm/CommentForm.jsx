@@ -1,17 +1,50 @@
 // src/components/CommentForm/CommentForm.jsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
 
-const CommentForm = ({ handleAddComment }) => {
+import * as hootService from "../../services/hootService";
+
+const CommentForm = (props) => {
+  const { hootId, commentId } = useParams();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({ text: "" });
 
+  useEffect(() => {
+    const fetchHoot = async () => {
+      const hootData = await hootService.show(hootId);
+      setFormData(
+        hootData.comments.find(
+          (comment) => comment._id === commentId
+        )
+      );
+    };
+
+    if (hootId && commentId) fetchHoot();
+  }, [hootId, commentId]);
+
   const handleChange = (evt) => {
-    setFormData({ ...formData, [evt.target.name]: evt.target.value });
+    setFormData({
+      ...formData,
+      [evt.target.name]: evt.target.value,
+    });
   };
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
-    handleAddComment(formData);
+
+    if (hootId && commentId) {
+      hootService.updateComment(
+        hootId,
+        commentId,
+        formData
+      );
+      navigate(`/hoots/${hootId}`);
+    } else {
+      props.handleAddComment(formData);
+    }
+
     setFormData({ text: "" });
   };
 
@@ -20,13 +53,14 @@ const CommentForm = ({ handleAddComment }) => {
       <label htmlFor="text-input">Your comment:</label>
       <textarea
         required
-        type="text"
         name="text"
         id="text-input"
         value={formData.text}
         onChange={handleChange}
       />
-      <button type="submit">SUBMIT COMMENT</button>
+      <button type="submit">
+        {commentId ? "UPDATE COMMENT" : "SUBMIT COMMENT"}
+      </button>
     </form>
   );
 };
