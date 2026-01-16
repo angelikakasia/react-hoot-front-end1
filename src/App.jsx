@@ -1,5 +1,6 @@
-import { Routes, Route } from "react-router"; // Import React Router
+import { Routes, Route, useNavigate} from "react-router"; // Import React Router
 import { useContext, useState, useEffect } from "react";
+// src/App.js
 
 import NavBar from "./components/NavBar/Navbar";
 // Import the SignUpForm component
@@ -7,6 +8,9 @@ import SignUpForm from "./components/SignUpForm/SignUpForm";
 import SignInForm from "./components/SignInForm/SignInForm";
 import Landing from "./components/Landing/Landing";
 import Dashboard from "./components/Dashboard/Dashboard";
+// src/App.jsx
+
+import HootForm from './components/HootForm/HootForm';
 
 import "./App.css";
 // src/App.jsx
@@ -22,16 +26,23 @@ import HootList from "./components/HootList/HootList";
 const App = () => {
   const { user } = useContext(UserContext);
   const [hoots, setHoots] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchAllHoots = async () => {
       const hootsData = await hootService.index();
       console.log("hootsData:", hootsData);
       setHoots(hootsData);
     };
-
     if (user) fetchAllHoots();
   }, [user]);
+// src/App.jsx
+
+  const handleAddHoot = async (hootFormData) => {
+    const newHoot = await hootService.create(hootFormData);
+    setHoots([...hoots, newHoot]);
+    navigate('/hoots');
+  };
+
 
   return (
     <>
@@ -46,6 +57,13 @@ const App = () => {
             <Route path="/hoots" element={<HootList hoots={hoots} />} />
             {/* Add this route! */}
             <Route path="/hoots/:hootId" element={<HootDetails />} />
+            <Route path='/hoots/new' element={<HootForm />} />// src/App.jsx
+            <Route 
+              path='/hoots/new' 
+              element={<HootForm handleAddHoot={handleAddHoot} />}
+            />
+
+
           </>
         ) : (
           <>
